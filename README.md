@@ -1,4 +1,6 @@
 webimg
 ======
+developing....
 
-thumbnail watermark captcha
+thumbnail watermark captcha lib base on gm
+
