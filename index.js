@@ -53,6 +53,21 @@ Webimg.fn.filesize = function(callback){
 	})
 };
 
+//设置字体
+Webimg.fn.font = function(font){
+	opts.font = font;
+	return this;
+}
+
+//设置文字颜色
+Webimg.fn.fontColor = function(color){
+	opts.fontcolor = color;
+	return this;
+}
+Webimg.fn.fontSize = function(size){
+	opts.fontsize = size;
+	return this;
+}
 /*
 	设置各种参数
  */
@@ -147,7 +162,7 @@ Webimg.fn.thumb = function(callback){
  */
 
 //设置水印物料
-Webimg.prototype.markImg = function(mark)
+Webimg.fn.markImg = function(mark)
 {
 	if(_.isArray(opts))
 	{
@@ -157,7 +172,7 @@ Webimg.prototype.markImg = function(mark)
 	opts.text = null;
 	return this;
 }
-Webimg.prototype.markText = function(text){
+Webimg.fn.markText = function(text){
 	if(_.isArray(opts))
 	{
 		throw new Error('You have already set up the batch configuration');
@@ -201,12 +216,11 @@ Webimg.fn.watermark = function(){
 	//组织水印配置
 	var markopts = {};
 	markopts.img  = opts.img  || null;
-	markopts.iext = opts.text || null;
+	markopts.text = opts.text || null;
 	markopts.pos  = opts.pos  || 'SouthEast';
-	markopts.fontsize = opts.fontsize || '14';
-	markopts.font     = opts.font     || '';
+	markopts.fontsize = opts.fontsize || 14;
+	markopts.font     = opts.font     || __dirname + '/font.ttf';
 	markopts.fontcolor = opts.fontcolor || '#000000';
-	
 	watermark(this.dst,markopts);
 }
 
@@ -236,7 +250,15 @@ var watermarkImg = function(file,opts){
 
 var watermarkText = function(file,opts)
 {
-
+	var pos = opts.pos.toLowerCase();
+	gm(file)
+	.font(opts.font, opts.fontsize)
+	.drawText(20, 20, opts.text,pos)
+	.write(file, function (err) {
+	  if (err){
+	  	throw err;
+	  }
+	});
 }
 
 /*

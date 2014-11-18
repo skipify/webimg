@@ -6,11 +6,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skipify/webimg"
+  },  
   "dependencies":{
   	"gm" : "~1.17.0",
-    "underscore" : "~1.7.0",
-    "ccap" : "~0.4.3"
-  	
+    "underscore" : "~1.7.0"  	
   },
   "author": "skipify",
   "license": "MIT"
