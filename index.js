@@ -1,7 +1,20 @@
 var gm = require('gm'),
 	fs = require('fs'),
 	_  = require('underscore'),
-	opts = {};
+	opts = {
+		quality : 100//默认参数
+	},
+	posTypes = [
+     "NorthWest",
+     "North",
+     "NorthEast",
+     "West",
+     "Center",
+     "East",
+     "SouthWest",
+     "South",
+     "SouthEast"
+    ];
 
 
 var Webimg = function(img){
@@ -18,28 +31,51 @@ Webimg.fn = {};
 	根据原来的文件路径，宽高
 	创建一个新文件名
  */
-Webimg.fn.fileName = function(path,w,h)
+Webimg.fn.fileName = function(i)
 {
-	path = path || opts.dst;
-	if(!path){
-		throw new Error("No File Specified");
-	}
-	var paths = path.split('/'),
+	var path  = this.dst,
+		paths = path.split('/'),
 		n     = paths.pop(),
 		ns    = n.split('.'),
-		ext   = ns.pop(),
-		xname = (new Date()).getTime();
-		if(w && h){
-			xname += "_" + w + "x" + h;
+		ext   = "." + ns.pop(),
+		xname = ns.join('.');
+		if(_.isArray(opts))
+		{
+			if(opts[i].thumbName){//是否有指定的缩略图名字
+				if(opts[i].thumbName.indexOf('/') > -1)
+				{
+					return opts.thumbName;
+				}
+				xname = opts[i].thumbName.indexOf('.') > -1 ? opts[i].thumbName : (opts[i].thumbName + ext);
+			}else{
+				xname += "_t" + i + ext;
+			}
+			
 		}else{
-			return this.gm.size(function(e,val){
-				xname += "_" + val.width + "x" + val.height;
-				return paths.join('/') + "/" + xname + "." + ext;
-			});
+
+			if(opts.thumbName){
+				if(opts.thumbName.indexOf('/') > -1)
+				{
+					return opts.thumbName;
+				}
+				xname = opts.thumbName.indexOf('.') > -1 ? opts.thumbName : (opts.thumbName + ext);
+			}else{
+				xname += "_t0" + ext;
+			}
+
 		}
-	return paths.join('/') + "/" + xname + "." + ext;
+
+	return paths.join('/') + "/" + xname;
 }
 
+//指定一个缩略图的名字
+Webimg.fn.thumbName = function(name){
+	if(_.isArray(opts)) {
+		throw new Error('You have already set up the batch configuration');
+	}
+	opts.thumbName = name;
+	return this;
+}
 //文件尺寸
 Webimg.fn.size = function(callback){
 	this.gm.size(function(e,v){
@@ -99,11 +135,16 @@ Webimg.fn.height = function(height)
 	opts.height = height;
 	return this;
 }
-Webimg.fn.quality = function(quality){
+Webimg.fn.resize = function(width,height){
+	this.width(width);
+	this.height(height);
+	return this;
+}
+Webimg.fn.quality = function(q){
 	if(_.isArray(opts)) {
 		throw new Error('You have already set up the batch configuration');
 	}
-	opts.quality = quality;
+	opts.quality = q;
 	return this;
 }
 
@@ -115,8 +156,15 @@ var thumb = function(dst,width, height, outName, quality,callback){
 	if(!dst){
 		throw new Error('Do not specify a picture');
 	}
-	quality = quality || 100;
-	
+	if(!width || !_.isNumber(width)){
+		throw new Error("width:" + width +" is malformed");
+	}
+	if(!height || !_.isNumber(height)){
+		throw new Error("height:" + height +" is malformed");
+	}
+
+	quality = _.isNumber(quality) ? quality : 100;
+
 	gm(dst).thumb(width,height,outName,quality,function(err, stdout, stderr, command){
 		callback.apply(null,arguments);
 	});
@@ -124,31 +172,36 @@ var thumb = function(dst,width, height, outName, quality,callback){
 
 //生成缩略图
 Webimg.fn.thumb = function(callback){
-	if(_.isArray(opts)){
-		for(var i in opts)
-		{
-			var outName = this.fileName(this.dst,opt[i].width,opt[i].height);
-			thumb(this.dst,opts[i].width,opts[i].height,outName,opts[i].quality,function(err, stdout, stderr, command){
-				if(err){
-					throw err;
-				}
-				recive(opts[i],outName);
-				callback.apply(null,arguments);
-			});
+	var that = this,
+		dst  = this.dst;
+	this.formatParmas(opts,function(opts){
+		if(_.isArray(opts)){
+			for(var i in opts)
+			{
+				var outName = that.fileName(i);
+				thumb(dst,opts[i].width,opts[i].height,outName,quality,function(err, stdout, stderr, command){
+					if(err){
+						throw err;
+					}
+					recive(opts[i],outName);
+					callback && callback.apply(null,arguments);
+				});
+			}
+		}else{
+			var outName = that.fileName();
+			thumb(dst,opts.width,opts.height,outName,opts.quality,function(err, stdout, stderr, command){
+					if(err){
+						throw err;
+					}
+					recive(opts,outName);
+					callback && callback.apply(null,arguments);				
+				});
 		}
-	}else{
-		var outName = this.fileName(this.dst,opt.width,opt.height);
-		thumb(this.dst,opts.width,opts.height,outName,opts.quality,function(err, stdout, stderr, command){
-				if(err){
-					throw err;
-				}
-				recive(opts[i],outName);
-				callback.apply(null,arguments);				
-			});
-	}
+
+	});
 
 	function recive(opt,file){
-		if(!opt.markImg && !opt.markText){
+		if(!opt.img && !opt.text){
 			return false;
 		}
 		//添加水印
@@ -187,18 +240,8 @@ Webimg.fn.markPos = function(pos){
 	return this;
 }
 var formatMarkPos = function(pos){
-  var types = [
-     "NorthWest",
-     "North",
-     "NorthEast",
-     "West",
-     "Center",
-     "East",
-     "SouthWest",
-     "South",
-     "SouthEast"
-  ];
-  if(_.indexOf(types,pos) > -1)
+
+  if(_.indexOf(posTypes,pos) > -1)
   {
   	return pos;
   }
@@ -208,7 +251,7 @@ var formatMarkPos = function(pos){
   }
   pos = parseInt(pos);
   pos --;
-  return types[pos];
+  return posTypes[pos];
 }
 //生成水印
 
@@ -252,6 +295,7 @@ var watermarkText = function(file,opts)
 {
 	var pos = opts.pos.toLowerCase();
 	gm(file)
+	.stroke(opts.fontcolor)
 	.font(opts.font, opts.fontsize)
 	.drawText(20, 20, opts.text,pos)
 	.write(file, function (err) {
@@ -264,18 +308,66 @@ var watermarkText = function(file,opts)
 /*
 	验证码
  */
-Webimg.prototype.captcha = function(text){
-	var captcha = ccap(width, height, offset);
+Webimg.fn.captcha = function(){
+
+	opts.fontsize = opts.fontsize || 14;
+	opts.font     = opts.font     || __dirname + '/font.ttf';
+	opts.fontcolor = opts.fontcolor || '#000000';
+	var c    =  new captcha(80,40,'#ffffff');
+	return c;
 }
 
+//验证码
+var captcha = function(width,height,background){
+	this.width  = width;
+	this.height = height;
+	this.background  = background;
+	this.str    = this.random() || '8888';
+	this.img    = gm(width,height,background);
+	this.img.stroke(opts.fontcolor)
+			.font(opts.font, opts.fontsize)
+			.drawText(1, 1, this.str ,'center');
+		this.drawLine();
+	this.img.swirl(40).write("captcha2.jpg", function (err) {
+  		// ...
+	});
+}
+captcha.prototype.getStr = function(){
+	return this.str;
+}
+
+//生成验证码字符串
+captcha.prototype.random = function(len){
+	len = parseInt(len) || 4;
+	var chars = ['a','b','c','d','e','f','g','i','h','k','m','n','p','q','r','s','t','u','v','w','x','y','3','4','5','6','7','8','9'],
+		str   = "",
+		clen  = chars.length - 1;
+	for(var i =0;i<len;i++)
+	{
+		var cindex = _.random(0,clen);
+		str += chars[cindex];
+	}
+	return str;
+}
+//点的数量
+captcha.prototype.drawLine = function(num){
+	num = num || _.random(1,3);
+	for(var i=0;i<num;i++)
+	{
+		this.img.stroke(this.background).fill(this.background)
+			.drawLine(0,_.random(1,this.height-1),this.width,_.random(1,this.height-1));
+	}
+
+}
 
 //设置水印
 
 //
 
 //处理配置文件
-//对于只传递了宽或者高的配置按照图片比例计算未设置项
-Webimg.fn.formatParmas = function(opt){
+//对于只传递了宽或者高的配置按照图片比例计算未设置项,
+//所有需要宽高参数的应用都应该使用回调
+Webimg.fn.formatParmas = function(opt,callback){
 	opt  = opt || opts;
 	return this.gm.size(function(e,value){
 			if(e){
@@ -284,24 +376,15 @@ Webimg.fn.formatParmas = function(opt){
 			var radio = value.width/value.height;//宽高比
 			if(_.isArray(opt))
 			{//批量
-				if(opt.length === 0)
-				{
-					return opt;
-				}
 				for(var i in opt)
 				{
 					opt[i] = Webimg.fn.formatParmas(opt[i]);
 				}
-				return opt;
 			}else{
-				if(opt.width && opt.height){
-					return opt;
-				}
 				if(!opt.width && !opt.height)
 				{
 					opt.width  = value.width;
 					opt.height = value.height;
-					return opt;
 				}
 				if(!opt.height)
 				{
@@ -311,8 +394,9 @@ Webimg.fn.formatParmas = function(opt){
 				{
 					opt.width = opt.height * radio;
 				}
-				return opt;
 			}
+
+			callback && callback.call(null,opt);
 		});	
 }
 
