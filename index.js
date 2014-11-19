@@ -30,7 +30,6 @@ var Webimg = function(img,height,background){
 	}else{
 		this.dst = img;
 	}
-	
 	if(this.dst)
 	{
 		this.gm  = gm(this.dst);
@@ -199,7 +198,7 @@ Webimg.fn.markPos = function(pos){
 	缩略图
  */
 //生成缩略图
-var thumb = function(dst,width, height, outName, quality,callback){
+var thumb = function(dst,width, height, outName, quality,opt,callback){
 	if(!dst){
 		throw new Error('Do not specify a picture');
 	}
@@ -213,7 +212,7 @@ var thumb = function(dst,width, height, outName, quality,callback){
 	quality = _.isNumber(quality) ? quality : 100;
 
 	gm(dst).thumb(width,height,outName,quality,function(err, stdout, stderr, command){
-		callback.apply(null,arguments);
+		callback.call(null,err,opt,outName);
 	});
 }
 
@@ -225,21 +224,25 @@ Webimg.fn.thumb = function(callback){
 		throw new Error('No file specified');
 	}
 	this.formatParmas(opts,function(opts){
+
 		if(_.isArray(opts)){
-			for(var i in opts)
+			for(var i=0;i<opts.length;i++)
 			{
-				var outName = that.fileName(i);
-				thumb(dst,opts[i].width,opts[i].height,outName,quality,function(err, stdout, stderr, command){
+				var outName = that.fileName(i),
+					opt = opts[i];
+					console.log('I;'+i);
+					console.log(opt);
+				thumb(dst,opt.width,opt.height,outName,opt.quality,opt,function(err,opt,outName){
 					if(err){
 						throw err;
 					}
-					recive(opts[i],outName);
+					recive(opt,outName);
 					callback && callback.apply(null,arguments);
 				});
 			}
 		}else{
 			var outName = that.fileName();
-			thumb(dst,opts.width,opts.height,outName,opts.quality,function(err, stdout, stderr, command){
+			thumb(dst,opts.width,opts.height,outName,opts.quality,function(err, opts,outName){
 					if(err){
 						throw err;
 					}
@@ -251,7 +254,7 @@ Webimg.fn.thumb = function(callback){
 	});
 
 	function recive(opt,file){
-		if(!opt.img && !opt.text){
+		if(!opt || (!opt.img && !opt.text)){
 			return false;
 		}
 		//添加水印
@@ -404,35 +407,39 @@ captcha.prototype.drawLine = function(num){
 //所有需要宽高参数的应用都应该使用回调
 Webimg.fn.formatParmas = function(opt,callback){
 	opt  = opt || opts;
-	return this.gm.size(function(e,value){
-			if(e){
-				throw e;
-			}
-			var radio = value.width/value.height;//宽高比
-			if(_.isArray(opt))
-			{//批量
-				for(var i in opt)
-				{
-					opt[i] = Webimg.fn.formatParmas(opt[i]);
-				}
-			}else{
-				if(!opt.width && !opt.height)
-				{
-					opt.width  = value.width;
-					opt.height = value.height;
-				}
-				if(!opt.height)
-				{
-					opt.height = opt.width / radio;
-				}
-				if(!opt.width)
-				{
-					opt.width = opt.height * radio;
-				}
-			}
 
-			callback && callback.call(null,opt);
-		});	
+	gm(this.dst).size(function(e,value){
+		if(e){
+			throw e;
+		}
+		var radio = value.width/value.height;//宽高比
+		if(_.isArray(opt))
+		{//批量
+			for(var i in opt)
+			{
+				opt[i] = format(opt[i]);
+			}
+		}else{
+			opt = format(opt);
+		}
+		function format(opt){
+			if(!opt.width && !opt.height)
+			{
+				opt.width  = value.width;
+				opt.height = value.height;
+			}
+			if(!opt.height)
+			{
+				opt.height = opt.width / radio;
+			}
+			if(!opt.width)
+			{
+				opt.width = opt.height * radio;
+			}
+			return opt;
+		}
+		callback && callback.call(null,opt);
+	});	
 }
 
 
