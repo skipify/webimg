@@ -26,8 +26,11 @@ var Webimg = function(img,height,background){
 		img = null;
 		opts.height = height;
 		opts.background = background;
+		this.dst = null;
+	}else{
+		this.dst = img;
 	}
-	this.dst = img;
+	
 	if(this.dst)
 	{
 		this.gm  = gm(this.dst);
@@ -291,9 +294,9 @@ var formatOpts = function(opts){
 	opts.img  = opts.img  || null;
 	opts.text = opts.text || null;
 	opts.pos  = opts.pos  || 'SouthEast';
-	opts.fontsize = opts.fontsize || 28;
-	opts.font     = opts.font     || __dirname + '/font.ttf';
-	opts.fontcolor = opts.fontcolor || '#000000';
+	opts.fontsize   = opts.fontsize || 28;
+	opts.font       = opts.font     || __dirname + '/font.ttf';
+	opts.fontcolor  = opts.fontcolor || '#000000';
 	opts.background = opts.background || '#ffffff';
 	return opts;
 }
@@ -339,24 +342,26 @@ var watermarkText = function(file,opts)
 /*
 	验证码
  */
-Webimg.fn.captcha = function(){
+Webimg.fn.captcha = function(outfile){
 		opts = formatOpts(opts);
-	var c    =  new captcha(opts.width,opts.height,opts.background);
+	var c    =  new captcha(outfile,opts.width,opts.height,opts.background);
 	return c;
 }
 
 //验证码
-var captcha = function(width,height,background){
-	this.width  = width;
-	this.height = height;
-	this.background  = background;
+var captcha = function(outfile,width,height,background){
+	this.width  = width  || 80;
+	this.height = height || 35;
+	this.background  = background || '#ffffff';
 	this.str    = this.random() || '8888';
-	this.img    = gm(width,height,background);
+	this.img    = gm(this.width,this.height,this.background);
+	outfile     = outfile || './captcha.jpg';
 	this.img.stroke(opts.fontcolor)
+			.fill(opts.fontcolor)
 			.font(opts.font, opts.fontsize)
-			.drawText(1, 1, this.str ,'center');
+			.drawText(0, 0, this.str ,'center');
 		this.drawLine();
-	this.img.swirl(45).write("captcha2.jpg", function (err) {
+	this.img.swirl(45).write(outfile, function (err) {
   		if(err){
   			throw err;
   		}
@@ -433,4 +438,5 @@ Webimg.fn.formatParmas = function(opt,callback){
 
 Webimg.prototype = Webimg.fn;
 Webimg.gm = gm;
+Webimg.captcha = captcha;
 module.exports = Webimg;
