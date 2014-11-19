@@ -17,12 +17,21 @@ var gm = require('gm'),
     ];
 
 
-var Webimg = function(img){
-	if(!img){
-		throw new Error('No Image File Specified');
+var Webimg = function(img,height,background){
+
+	//验证码配置
+	if(_.isNumber(img))
+	{
+		opts.width = img;
+		img = null;
+		opts.height = height;
+		opts.background = background;
 	}
 	this.dst = img;
-	this.gm  = gm(this.dst);
+	if(this.dst)
+	{
+		this.gm  = gm(this.dst);
+	}
 }
 
 Webimg.fn = {};
@@ -33,6 +42,9 @@ Webimg.fn = {};
  */
 Webimg.fn.fileName = function(i)
 {
+	if(!this.dst){
+		return '';
+	}
 	var path  = this.dst,
 		paths = path.split('/'),
 		n     = paths.pop(),
@@ -147,6 +159,38 @@ Webimg.fn.quality = function(q){
 	opts.quality = q;
 	return this;
 }
+//设置图片背景色
+Webimg.fn.backgroundColor = function(color){
+	opts.background = color;
+}
+
+
+//设置水印物料
+Webimg.fn.markImg = function(mark)
+{
+	if(_.isArray(opts))
+	{
+		throw new Error('You have already set up the batch configuration');
+	}
+	opts.img  = mark;
+	opts.text = null;
+	return this;
+}
+//水印文字
+Webimg.fn.markText = function(text){
+	if(_.isArray(opts))
+	{
+		throw new Error('You have already set up the batch configuration');
+	}
+	opts.text = text;
+	opts.img  = null;
+	return this;
+}
+//水印位置
+Webimg.fn.markPos = function(pos){
+	opts.pos  = formatMarkPos(pos);
+	return this;
+}
 
 /*
 	缩略图
@@ -174,6 +218,9 @@ var thumb = function(dst,width, height, outName, quality,callback){
 Webimg.fn.thumb = function(callback){
 	var that = this,
 		dst  = this.dst;
+	if(!dst){
+		throw new Error('No file specified');
+	}
 	this.formatParmas(opts,function(opts){
 		if(_.isArray(opts)){
 			for(var i in opts)
@@ -205,7 +252,7 @@ Webimg.fn.thumb = function(callback){
 			return false;
 		}
 		//添加水印
-		
+		watermark(file,formatOpts(opt));
 	}
 
 }
@@ -214,31 +261,6 @@ Webimg.fn.thumb = function(callback){
 	水印
  */
 
-//设置水印物料
-Webimg.fn.markImg = function(mark)
-{
-	if(_.isArray(opts))
-	{
-		throw new Error('You have already set up the batch configuration');
-	}
-	opts.img  = mark;
-	opts.text = null;
-	return this;
-}
-Webimg.fn.markText = function(text){
-	if(_.isArray(opts))
-	{
-		throw new Error('You have already set up the batch configuration');
-	}
-	opts.text = text;
-	opts.img  = null;
-	return this;
-}
-//水印位置
-Webimg.fn.markPos = function(pos){
-	opts.pos  = formatMarkPos(pos);
-	return this;
-}
 var formatMarkPos = function(pos){
 
   if(_.indexOf(posTypes,pos) > -1)
@@ -256,15 +278,24 @@ var formatMarkPos = function(pos){
 //生成水印
 
 Webimg.fn.watermark = function(){
+	if(!this.dst){
+		throw new Error('No file specified');
+	}
 	//组织水印配置
-	var markopts = {};
-	markopts.img  = opts.img  || null;
-	markopts.text = opts.text || null;
-	markopts.pos  = opts.pos  || 'SouthEast';
-	markopts.fontsize = opts.fontsize || 14;
-	markopts.font     = opts.font     || __dirname + '/font.ttf';
-	markopts.fontcolor = opts.fontcolor || '#000000';
+	var markopts = formatOpts(opts);
 	watermark(this.dst,markopts);
+}
+
+//格式化非宽高配置
+var formatOpts = function(opts){
+	opts.img  = opts.img  || null;
+	opts.text = opts.text || null;
+	opts.pos  = opts.pos  || 'SouthEast';
+	opts.fontsize = opts.fontsize || 28;
+	opts.font     = opts.font     || __dirname + '/font.ttf';
+	opts.fontcolor = opts.fontcolor || '#000000';
+	opts.background = opts.background || '#ffffff';
+	return opts;
 }
 
 var watermark = function(file,opts){
@@ -309,11 +340,8 @@ var watermarkText = function(file,opts)
 	验证码
  */
 Webimg.fn.captcha = function(){
-
-	opts.fontsize = opts.fontsize || 14;
-	opts.font     = opts.font     || __dirname + '/font.ttf';
-	opts.fontcolor = opts.fontcolor || '#000000';
-	var c    =  new captcha(80,40,'#ffffff');
+		opts = formatOpts(opts);
+	var c    =  new captcha(opts.width,opts.height,opts.background);
 	return c;
 }
 
@@ -328,8 +356,10 @@ var captcha = function(width,height,background){
 			.font(opts.font, opts.fontsize)
 			.drawText(1, 1, this.str ,'center');
 		this.drawLine();
-	this.img.swirl(40).write("captcha2.jpg", function (err) {
-  		// ...
+	this.img.swirl(45).write("captcha2.jpg", function (err) {
+  		if(err){
+  			throw err;
+  		}
 	});
 }
 captcha.prototype.getStr = function(){
