@@ -1,0 +1,2 @@
+var Webimg = require('../');
+

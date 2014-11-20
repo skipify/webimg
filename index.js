@@ -57,12 +57,14 @@ Webimg.fn.fileName = function(i,opts)
 		ns    = n.split('.'),
 		ext   = "." + ns.pop(),
 		xname = ns.join('.');
-
-		if(opts.thumbName){
-			if(opts.thumbName.indexOf('/') > -1) {
-				return opts.thumbName;
+		if(!ext){
+			ext = '.jpg';
+		}
+		if(opts.outFile){
+			if(opts.outFile.indexOf('/') > -1) {
+				return opts.outFile;
 			}
-			xname = opts.thumbName.indexOf('.') > -1 ? opts.thumbName : (opts.thumbName + ext);
+			xname = opts.outFile.indexOf('.') > -1 ? opts.outFile : (opts.outFile + ext);
 		}else{
 			xname += "_t" + i + ext;
 		}
@@ -71,12 +73,12 @@ Webimg.fn.fileName = function(i,opts)
 	return paths.join('/') + "/" + xname;
 }
 
-//指定一个缩略图的名字
-Webimg.fn.thumbName = function(name){
+//指定一个输出文件的名字
+Webimg.fn.outFile = function(name){
 	if(_.isArray(opts)) {
 		throw new Error('You have already set up the batch configuration');
 	}
-	opts.thumbName = name;
+	opts.outFile = name;
 	return this;
 }
 //文件尺寸
@@ -188,7 +190,7 @@ Webimg.fn.markPos = function(pos){
  */
 
 //生成缩略图
-Webimg.fn.thumb = function(thumbname){
+Webimg.fn.thumb = function(outfile){
 	var that = this,
 		dst  = this.dst,
 		oopts = opts;
@@ -201,14 +203,14 @@ Webimg.fn.thumb = function(thumbname){
 			for(var i=0;i<sopts.length;i++)
 			{
 				var opt = sopts[i];
-					opt.thumbName = that.fileName(i,opt);
+					opt.outFile = that.fileName(i,opt);
 				thumb(dst,opt,function(opt){
 					recive(opt);
 				});
 			}
 		}else{
-			sopts.thumbName = thumbname; //可以指定一个输出的名字
-			sopts.thumbName = that.fileName(sopts);
+			sopts.outFile = outfile; //可以指定一个输出的名字
+			sopts.outFile = that.fileName(sopts);
 			thumb(dst,sopts,function(sopts){
 					recive(sopts);
 				});
@@ -221,7 +223,7 @@ Webimg.fn.thumb = function(thumbname){
 			return false;
 		}
 		//添加水印
-		watermark(opt.thumbName,opt);
+		watermark(opt.outFile,opt);
 	}
 }
 
@@ -231,8 +233,7 @@ var thumb = function(dst,opt,callback){
 		throw new Error('Do not specify a picture');
 	}
 	opt = formatOpts(opt);
-	console.log(arguments);
-	gm(dst).thumb(opt.width,opt.height,opt.thumbName,opt.quality,function(err, stdout, stderr, command){
+	gm(dst).thumb(opt.width,opt.height,opt.outFile,opt.quality,function(err, stdout, stderr, command){
 		if(err){
 			throw err;
 		}
@@ -261,10 +262,11 @@ var formatMarkPos = function(pos){
 }
 //生成水印
 
-Webimg.fn.watermark = function(){
+Webimg.fn.watermark = function(outfile){
 	if(!this.dst){
 		throw new Error('No file specified');
 	}
+	opts.outFile = outfile || this.dst;//不指定输出名字则直接给原图输出
 	//组织水印配置
 	var markopts = formatOpts(opts);
 	this.resetParams();//重置参数
@@ -299,7 +301,7 @@ var watermark = function(file,opts){
 //生成图片水印
 var watermarkImg = function(file,opts){
 	var gm = gm(file);
-	gm.composite(opts.markImg).gravity(opts.markPos).write(file,function(err){
+	gm.composite(opts.markImg).gravity(opts.markPos).write(opts.outFile,function(err){
 		if(err)
 		{
 			throw err
@@ -315,7 +317,7 @@ var watermarkText = function(file,opts)
 	.stroke(opts.fontcolor)
 	.font(opts.font, opts.fontsize)
 	.drawText(20, 20, opts.text,pos)
-	.write(file, function (err) {
+	.write(opts.outFile, function (err) {
 	  if (err){
 	  	throw err;
 	  }
@@ -326,19 +328,21 @@ var watermarkText = function(file,opts)
 	验证码
  */
 Webimg.fn.captcha = function(outfile){
+		opts.outFile = outfile || opts.outFile;
 		sopts = formatOpts(opts);
 		this.resetParams();
-	var c    =  new captcha(outfile,sopts);
+	var c    =  new captcha(sopts);
 	return c;
 }
 
 //验证码
-var captcha = function(outfile,opts){
+var captcha = function(opts){
 	opts.width  = opts.width  || 80;
 	opts.height = opts.height || 35;
 	opts.background  = opts.background || '#ffffff';
+	opts.outFile     = opts.outFile || './captcha.jpg';
+
 	this.str    = this.random() || '8888';
-	outfile     = outfile || './captcha.jpg';
 
 	this.img    = gm(opts.width,opts.height,opts.background);
 	this.img.stroke(opts.fontcolor)
@@ -346,7 +350,7 @@ var captcha = function(outfile,opts){
 			.font(opts.font, opts.fontsize)
 			.drawText(0, 0, this.str ,'center');
 		this.drawLine(opts);
-	this.img.swirl(45).write(outfile, function (err) {
+	this.img.swirl(45).write(opts.outFile, function (err) {
   		if(err){
   			throw err;
   		}

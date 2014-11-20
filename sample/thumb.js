@@ -14,7 +14,7 @@ new Webimg('../a.jpg').resize(100,50).thumb();
 //指定输出的名字
 //指定名字如果包含 . 则不会增加扩展名，如果不包含.则会自动添加源文件的扩展名
 //不包含 / 则会生成到与原图相同的目录 包含 / 则会当做一个最终的路径输出
-//new Webimg('../a.jpg').resize(100,50).thumbName('thumb.jpg').thumb();
+//new Webimg('../a.jpg').resize(100,50).outFile('thumb.jpg').thumb();
 //等同于 
 //new Webimg('../a.jpg').resize(100,50).thumb('thumb.jpg'); 
 //等同于 
@@ -26,7 +26,7 @@ new Webimg('../a.jpg').resize(100,50).thumb('thumb');
 
 new Webimg('../a.jpg').params({
 	width:185,
-	thumbName:'xx.jpg',
+	outFile:'xx.jpg',
 }).thumb();
 
 //配置项：
@@ -34,7 +34,7 @@ new Webimg('../a.jpg').params({
 /*
 width
 height
-thumbName
+outFile
 
 */
 
