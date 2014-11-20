@@ -10,10 +10,10 @@ webimg
 
 ## 缩略图示例
 
-	new Webimg('./test.jpg').resize(100,50).thumb('thumb.jpg'); 
+	Webimg('./test.jpg').resize(100,50).thumb('thumb.jpg'); 
 
 ## 水印示例
-	new Webimg('./test.jpg')
+	Webimg('./test.jpg')
 		.markText('test')//设置水印文字
 		.markPos(5)//水印位置  123456789
 		.fontSize(50)//文字水印字体大小
@@ -23,12 +23,12 @@ webimg
 
 ## 验证码示例
 
-	var captcha = new webimg().captcha();
+	var captcha = webimg().captcha();
 	console.log(captcha.getStr()); //输出验证码的文字
 
 ## 缩略图和水印联合
 
-	new Webimg('./test.jpg').params({
+	Webimg('./test.jpg').params({
 		width:100,  
 		text:'hahahasdsd', ////生成图片的同时添加水印 如果 text img同时存在 那么先添加图片水印后添加文字水印
 		fontcolor:'#ffffff',
