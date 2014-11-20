@@ -1,6 +1,6 @@
 {
   "name": "webimg",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Creating thumbnails, verification code, add a watermark.用于生成缩略图，添加水印，生成验证码",
   "main": "index.js",
   "scripts": {
