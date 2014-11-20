@@ -19,10 +19,10 @@ var Webimg = require('../');
 //高级应用，
 //配置对象
 
-//new Webimg('../a.jpg').params({
-//	width:200,
-//	thumbName:'xx.jpg',
-//}).thumb();
+new Webimg('../a.jpg').params({
+	width:185,
+	thumbName:'xx.jpg',
+}).thumb();
 
 //配置项：
 
@@ -34,7 +34,7 @@ thumbName
 */
 
 //同时生成多张缩略图
-
+/*
 new Webimg('../a.jpg').params([{
 	width:200,
 },
@@ -48,3 +48,4 @@ new Webimg('../a.jpg').params([{
 }
 
 ]).thumb();
+*/

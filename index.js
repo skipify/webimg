@@ -197,71 +197,62 @@ Webimg.fn.markPos = function(pos){
 /*
 	缩略图
  */
-//生成缩略图
-var thumb = function(dst,width, height, outName, quality,opt,callback){
-	if(!dst){
-		throw new Error('Do not specify a picture');
-	}
-	if(!width || !_.isNumber(width)){
-		throw new Error("width:" + width +" is malformed");
-	}
-	if(!height || !_.isNumber(height)){
-		throw new Error("height:" + height +" is malformed");
-	}
-
-	quality = _.isNumber(quality) ? quality : 100;
-
-	gm(dst).thumb(width,height,outName,quality,function(err, stdout, stderr, command){
-		callback.call(null,err,opt,outName);
-	});
-}
 
 //生成缩略图
 Webimg.fn.thumb = function(callback){
 	var that = this,
-		dst  = this.dst;
+		dst  = this.dst,
+		oopts = opts;
+	this.resetParams();
 	if(!dst){
 		throw new Error('No file specified');
 	}
-	this.formatParmas(opts,function(opts){
-
-		if(_.isArray(opts)){
-			for(var i=0;i<opts.length;i++)
+	this.formatParmas(oopts,function(sopts){
+		if(_.isArray(sopts)){
+			for(var i=0;i<sopts.length;i++)
 			{
-				var outName = that.fileName(i),
-					opt = opts[i];
-					console.log('I;'+i);
-					console.log(opt);
-				thumb(dst,opt.width,opt.height,outName,opt.quality,opt,function(err,opt,outName){
-					if(err){
-						throw err;
-					}
-					recive(opt,outName);
+				var opt = sopts[i];
+					opt.thumbName = that.fileName(i);
+				thumb(dst,opt,function(opt){
+					recive(opt);
 					callback && callback.apply(null,arguments);
 				});
 			}
 		}else{
-			var outName = that.fileName();
-			thumb(dst,opts.width,opts.height,outName,opts.quality,function(err, opts,outName){
-					if(err){
-						throw err;
-					}
-					recive(opts,outName);
+			sopts.thumbName = that.fileName();
+			thumb(dst,sopts,function(sopts){
+					recive(sopts);
 					callback && callback.apply(null,arguments);				
 				});
 		}
 
 	});
 
-	function recive(opt,file){
+	function recive(opt){
 		if(!opt || (!opt.img && !opt.text)){
 			return false;
 		}
 		//添加水印
-		watermark(file,formatOpts(opt));
+		watermark(opt.thumbName,opt);
 	}
 
 }
+
+//生成缩略图
+var thumb = function(dst,opt,callback){
+	if(!dst){
+		throw new Error('Do not specify a picture');
+	}
+	opt = formatOpts(opt);
+	console.log(arguments);
+	gm(dst).thumb(opt.width,opt.height,opt.thumbName,opt.quality,function(err, stdout, stderr, command){
+		if(err){
+			throw err;
+		}
+		callback && callback.call(null,opt);
+	});
+}
+
 
 /*
 	水印
@@ -289,6 +280,7 @@ Webimg.fn.watermark = function(){
 	}
 	//组织水印配置
 	var markopts = formatOpts(opts);
+	this.resetParams();//重置参数
 	watermark(this.dst,markopts);
 }
 
@@ -301,6 +293,7 @@ var formatOpts = function(opts){
 	opts.font       = opts.font     || __dirname + '/font.ttf';
 	opts.fontcolor  = opts.fontcolor || '#000000';
 	opts.background = opts.background || '#ffffff';
+	opts.quality    = opts.quality || 100;
 	return opts;
 }
 
@@ -346,8 +339,9 @@ var watermarkText = function(file,opts)
 	验证码
  */
 Webimg.fn.captcha = function(outfile){
-		opts = formatOpts(opts);
-	var c    =  new captcha(outfile,opts.width,opts.height,opts.background);
+		sopts = formatOpts(opts);
+		this.resetParams();
+	var c    =  new captcha(outfile,sopts.width,sopts.height,sopts.background);
 	return c;
 }
 
