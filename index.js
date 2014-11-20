@@ -181,7 +181,7 @@ Webimg.fn.markText = function(text){
 }
 //水印位置
 Webimg.fn.markPos = function(pos){
-	opts.pos  = formatMarkPos(pos);
+	opts.pos  = formatPos(pos);
 	return this;
 }
 
@@ -246,7 +246,7 @@ var thumb = function(dst,opt,callback){
 	水印
  */
 
-var formatMarkPos = function(pos){
+var formatPos = function(pos){
 
   if(_.indexOf(posTypes,pos) > -1)
   {
@@ -277,7 +277,7 @@ Webimg.fn.watermark = function(outfile){
 var formatOpts = function(opts){
 	opts.img  = opts.img  || null;
 	opts.text = opts.text || null;
-	opts.pos  = opts.pos  || 'SouthEast';
+	opts.pos  = formatPos(opts.pos)  || 'SouthEast';
 	opts.fontsize   = opts.fontsize || 28;
 	opts.font       = opts.font     || __dirname + '/font.ttf';
 	opts.fontcolor  = opts.fontcolor || '#000000';
@@ -300,8 +300,7 @@ var watermark = function(file,opts){
 }
 //生成图片水印
 var watermarkImg = function(file,opts){
-	var gm = gm(file);
-	gm.composite(opts.markImg).gravity(opts.markPos).write(opts.outFile,function(err){
+	gm(file).composite(opts.img).gravity(opts.pos).write(opts.outFile,function(err){
 		if(err)
 		{
 			throw err
@@ -315,6 +314,7 @@ var watermarkText = function(file,opts)
 	var pos = opts.pos.toLowerCase();
 	gm(file)
 	.stroke(opts.fontcolor)
+	.fill(opts.fontcolor)//边框和填充颜色一致
 	.font(opts.font, opts.fontsize)
 	.drawText(20, 20, opts.text,pos)
 	.write(opts.outFile, function (err) {
