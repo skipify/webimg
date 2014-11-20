@@ -1,7 +1,7 @@
 {
   "name": "webimg",
-  "version": "0.0.5",
-  "description": "webimg",
+  "version": "0.1.0",
+  "description": "Creating thumbnails, verification code, add a watermark.用于生成缩略图，添加水印，生成验证码",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,7 +12,7 @@
   },  
   "dependencies":{
   	"gm" : "~1.17.0",
-    "underscore" : "~1.7.0"  	
+    "underscore" : "~1.7.0" 
   },
   "author": "skipify",
   "license": "MIT"
