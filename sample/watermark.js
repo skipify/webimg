@@ -1,6 +1,6 @@
 var Webimg = require('../');
 
-new Webimg('./test.jpg')
+Webimg('./test.jpg')
 		.markText('test')//设置水印文字
 		.markPos(5)//水印位置  123456789
 		.fontSize(50)//文字水印字体大小
@@ -8,7 +8,7 @@ new Webimg('./test.jpg')
 		.fontColor('#ffffff')//字体颜色
 		.watermark('./mark.jpg');
 
-new Webimg('./test.jpg').params({
+Webimg('./test.jpg').params({
 	img:'./node.png',
 	pos:5,
 	fontcolor:'#ff00ff',

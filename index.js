@@ -19,6 +19,10 @@ var gm = require('gm'),
 
 var Webimg = function(img,height,background){
 
+	if(!(this instanceof Webimg)){
+		return new Webimg(img,height,background);
+	}
+
 	//验证码配置
 	if(_.isNumber(img))
 	{
@@ -328,19 +332,24 @@ var watermarkText = function(file,opts)
 	验证码
  */
 Webimg.fn.captcha = function(outfile){
-		opts.outFile = outfile || opts.outFile;
+		if(_.isFunction(outfile))
+		{
+			opts.outFile = null;
+		}else{
+			opts.outFile = outfile || opts.outFile;
+		}
 		sopts = formatOpts(opts);
 		this.resetParams();
-	var c    =  new captcha(sopts);
+	var c    =  new captcha(sopts,outfile);
 	return c;
 }
 
 //验证码
-var captcha = function(opts){
+var captcha = function(opts,callback){
 	opts.width  = opts.width  || 80;
 	opts.height = opts.height || 35;
 	opts.background  = opts.background || '#ffffff';
-	opts.outFile     = opts.outFile || './captcha.jpg';
+	opts.outFile     = opts.outFile;
 
 	this.str    = this.random() || '8888';
 
@@ -350,11 +359,19 @@ var captcha = function(opts){
 			.font(opts.font, opts.fontsize)
 			.drawText(0, 0, this.str ,'center');
 		this.drawLine(opts);
-	this.img.swirl(45).write(opts.outFile, function (err) {
-  		if(err){
-  			throw err;
-  		}
-	});
+	if(_.isFunction(callback))
+	{
+		this.img.swirl(45).toBuffer('png',function(err,buffer){
+			callback && callback.apply(null,arguments);
+		});
+	}else{
+		this.img.swirl(45).write(opts.outFile, function (err) {
+	  		if(err){
+	  			throw err;
+	  		}
+		});
+	}
+
 }
 captcha.prototype.getStr = function(){
 	return this.str;
