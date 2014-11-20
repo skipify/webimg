@@ -42,10 +42,14 @@ Webimg.fn = {};
 	根据原来的文件路径，宽高
 	创建一个新文件名
  */
-Webimg.fn.fileName = function(i)
+Webimg.fn.fileName = function(i,opts)
 {
 	if(!this.dst){
 		return '';
+	}
+	if(_.isObject(i)){
+		opts = i;
+		i = 0;
 	}
 	var path  = this.dst,
 		paths = path.split('/'),
@@ -53,31 +57,16 @@ Webimg.fn.fileName = function(i)
 		ns    = n.split('.'),
 		ext   = "." + ns.pop(),
 		xname = ns.join('.');
-		if(_.isArray(opts))
-		{
-			if(opts[i].thumbName){//是否有指定的缩略图名字
-				if(opts[i].thumbName.indexOf('/') > -1)
-				{
-					return opts.thumbName;
-				}
-				xname = opts[i].thumbName.indexOf('.') > -1 ? opts[i].thumbName : (opts[i].thumbName + ext);
-			}else{
-				xname += "_t" + i + ext;
+
+		if(opts.thumbName){
+			if(opts.thumbName.indexOf('/') > -1) {
+				return opts.thumbName;
 			}
-			
+			xname = opts.thumbName.indexOf('.') > -1 ? opts.thumbName : (opts.thumbName + ext);
 		}else{
-
-			if(opts.thumbName){
-				if(opts.thumbName.indexOf('/') > -1)
-				{
-					return opts.thumbName;
-				}
-				xname = opts.thumbName.indexOf('.') > -1 ? opts.thumbName : (opts.thumbName + ext);
-			}else{
-				xname += "_t0" + ext;
-			}
-
+			xname += "_t" + i + ext;
 		}
+
 
 	return paths.join('/') + "/" + xname;
 }
@@ -199,7 +188,7 @@ Webimg.fn.markPos = function(pos){
  */
 
 //生成缩略图
-Webimg.fn.thumb = function(callback){
+Webimg.fn.thumb = function(thumbname){
 	var that = this,
 		dst  = this.dst,
 		oopts = opts;
@@ -212,17 +201,16 @@ Webimg.fn.thumb = function(callback){
 			for(var i=0;i<sopts.length;i++)
 			{
 				var opt = sopts[i];
-					opt.thumbName = that.fileName(i);
+					opt.thumbName = that.fileName(i,opt);
 				thumb(dst,opt,function(opt){
 					recive(opt);
-					callback && callback.apply(null,arguments);
 				});
 			}
 		}else{
-			sopts.thumbName = that.fileName();
+			sopts.thumbName = thumbname; //可以指定一个输出的名字
+			sopts.thumbName = that.fileName(sopts);
 			thumb(dst,sopts,function(sopts){
 					recive(sopts);
-					callback && callback.apply(null,arguments);				
 				});
 		}
 
@@ -235,7 +223,6 @@ Webimg.fn.thumb = function(callback){
 		//添加水印
 		watermark(opt.thumbName,opt);
 	}
-
 }
 
 //生成缩略图
@@ -341,23 +328,24 @@ var watermarkText = function(file,opts)
 Webimg.fn.captcha = function(outfile){
 		sopts = formatOpts(opts);
 		this.resetParams();
-	var c    =  new captcha(outfile,sopts.width,sopts.height,sopts.background);
+	var c    =  new captcha(outfile,sopts);
 	return c;
 }
 
 //验证码
-var captcha = function(outfile,width,height,background){
-	this.width  = width  || 80;
-	this.height = height || 35;
-	this.background  = background || '#ffffff';
+var captcha = function(outfile,opts){
+	opts.width  = opts.width  || 80;
+	opts.height = opts.height || 35;
+	opts.background  = opts.background || '#ffffff';
 	this.str    = this.random() || '8888';
-	this.img    = gm(this.width,this.height,this.background);
 	outfile     = outfile || './captcha.jpg';
+
+	this.img    = gm(opts.width,opts.height,opts.background);
 	this.img.stroke(opts.fontcolor)
 			.fill(opts.fontcolor)
 			.font(opts.font, opts.fontsize)
 			.drawText(0, 0, this.str ,'center');
-		this.drawLine();
+		this.drawLine(opts);
 	this.img.swirl(45).write(outfile, function (err) {
   		if(err){
   			throw err;
@@ -382,12 +370,12 @@ captcha.prototype.random = function(len){
 	return str;
 }
 //点的数量
-captcha.prototype.drawLine = function(num){
+captcha.prototype.drawLine = function(opt,num){
 	num = num || _.random(1,3);
 	for(var i=0;i<num;i++)
 	{
-		this.img.stroke(this.background).fill(this.background)
-			.drawLine(0,_.random(1,this.height-1),this.width,_.random(1,this.height-1));
+		this.img.stroke(opt.background).fill(opt.background)
+			.drawLine(0,_.random(1,opt.height-1),opt.width,_.random(1,opt.height-1));
 	}
 
 }
