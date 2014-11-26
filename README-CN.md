@@ -1,6 +1,8 @@
 webimg
 ======
 
+[English](https://github.com/skipify/webimg/blob/master/README.md)
+
 此项目使用了著名的[gm](https://github.com/aheckmann/gm),在使用之前请安装[graphicsmagick](http://www.graphicsmagick.org/),如果你用到了验证码或者文字水印你还应该安装[Ghostscript](http://www.ghostscript.com/).
 
 

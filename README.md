@@ -1,6 +1,8 @@
 webimg
 ======
 
+[中文](https://github.com/skipify/webimg/blob/master/README-CN.md)
+
 This Project base on [gm](https://github.com/aheckmann/gm),you shoud install [graphicsmagick](http://www.graphicsmagick.org/),If you need to use captcha or text watermark, You should install [Ghostscript](http://www.ghostscript.com/).
 
 
