@@ -443,6 +443,12 @@ Webimg.fn.formatParmas = function(opt,callback){
 			{
 				opt.width = opt.height * radio;
 			}
+			if(opt.width > value.width){
+				opt.width = value.width;
+			}
+			if(opt.height > value.height){
+				opt.height = value.height;
+			}
 			return opt;
 		}
 		callback && callback.call(null,opt);
