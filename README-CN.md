@@ -122,9 +122,11 @@ webimg
 								如果是/aa.jpg 带有/的地址 则会直接医用指定的地址
 
 ## thumb 
-	@param string/null
+	@param string/null/function
+	@param function
 	生成缩略图最终调用的方法
 	对于非批量的缩略图生成可以指定唯一的输出文件参数
+	第二个参数是回调函数，可以接受一个参数是生成的缩略图名称
 
 ## watermark
 	@param string/null

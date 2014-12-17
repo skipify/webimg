@@ -194,11 +194,15 @@ Webimg.fn.markPos = function(pos){
  */
 
 //生成缩略图
-Webimg.fn.thumb = function(outfile){
+Webimg.fn.thumb = function(outfile,callback){
 	var that = this,
 		dst  = this.dst,
 		oopts = opts,
 		tnames = [];
+	if(typeof outfile == 'function'){
+		callback = outfile;
+		outfile  = null;
+	}
 	this.resetParams();
 	if(!dst){
 		throw new Error('No file specified');
@@ -222,7 +226,7 @@ Webimg.fn.thumb = function(outfile){
 				});
 			tnames.push(sopts.outFile);
 		}
-
+		callback && callback.call(null,tnames);
 	});
 
 	function recive(opt){
@@ -232,7 +236,6 @@ Webimg.fn.thumb = function(outfile){
 		//添加水印
 		watermark(opt.outFile,opt);
 	}
-	return tnames;
 }
 
 //生成缩略图
@@ -241,6 +244,13 @@ var thumb = function(dst,opt,callback){
 		throw new Error('Do not specify a picture');
 	}
 	opt = formatOpts(opt);
+	if(opt.owidth <= opt.width && opt.oheight <= opt.height){
+		//直接copy
+		var newfile = fs.createWriteStream(opt.outFile);
+		fs.createReadStream(dst).pipe(newfile);
+		callback && callback.call(null,opt);
+		return ;
+	}
 	gm(dst).thumb(opt.width,opt.height,opt.outFile,opt.quality,function(err, stdout, stderr, command){
 		if(err){
 			throw err;
@@ -449,6 +459,8 @@ Webimg.fn.formatParmas = function(opt,callback){
 			if(opt.height > value.height){
 				opt.height = value.height;
 			}
+			opt.owidth  = value.width;
+			opt.oheight = value.height;
 			return opt;
 		}
 		callback && callback.call(null,opt);

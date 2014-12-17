@@ -55,4 +55,7 @@ Webimg('./test.jpg').params([{
 
 ]).thumb();
 
-
+//out put new file name 
+webimg('./node.png').width(300).thumb(function(name){
+	console.log(name);
+});

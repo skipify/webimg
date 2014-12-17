@@ -120,9 +120,10 @@ This Project base on [gm](https://github.com/aheckmann/gm),you shoud install [gr
 			The format of the output file address Can make the thumb. JPG thumb so the final path consistent with the original image,If it is /aa. JPG with /  Will direct medical specified address
 
 ## thumb 
-	@param string/null    
+	@param string/null/function   
+	@param function  
 	Generated thumbnail in the end the method called
-	For the batch thumbnail generation can be specified only output file parameters
+	For the batch thumbnail generation can be specified only output file parameters,the callback function can accept a param for the thumb name;
 
 ## watermark
 	@param string/null    
