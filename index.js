@@ -197,7 +197,8 @@ Webimg.fn.markPos = function(pos){
 Webimg.fn.thumb = function(outfile){
 	var that = this,
 		dst  = this.dst,
-		oopts = opts;
+		oopts = opts,
+		tnames = [];
 	this.resetParams();
 	if(!dst){
 		throw new Error('No file specified');
@@ -208,6 +209,7 @@ Webimg.fn.thumb = function(outfile){
 			{
 				var opt = sopts[i];
 					opt.outFile = that.fileName(i,opt);
+					tnames.push(opt.outFile);
 				thumb(dst,opt,function(opt){
 					recive(opt);
 				});
@@ -218,6 +220,7 @@ Webimg.fn.thumb = function(outfile){
 			thumb(dst,sopts,function(sopts){
 					recive(sopts);
 				});
+			tnames.push(sopts.outFile);
 		}
 
 	});
@@ -229,6 +232,7 @@ Webimg.fn.thumb = function(outfile){
 		//添加水印
 		watermark(opt.outFile,opt);
 	}
+	return tnames;
 }
 
 //生成缩略图
