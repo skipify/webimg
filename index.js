@@ -73,8 +73,6 @@ Webimg.fn.fileName = function(i,opts)
 		}else{
 			xname += "_t" + i + ext;
 		}
-
-		console.log(this.dst);
 	return paths.join(ph.sep) + ph.sep + xname;
 }
 
