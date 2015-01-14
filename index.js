@@ -1,6 +1,7 @@
 var gm = require('gm'),
 	fs = require('fs'),
 	_  = require('underscore'),
+	ph = require('path'),
 	opts = {
 		quality : 100//默认参数
 	},
@@ -56,7 +57,7 @@ Webimg.fn.fileName = function(i,opts)
 		i = 0;
 	}
 	var path  = this.dst,
-		paths = path.split('/'),
+		paths = path.split(ph.sep),
 		n     = paths.pop(),
 		ns    = n.split('.'),
 		ext   = "." + ns.pop(),
@@ -65,7 +66,7 @@ Webimg.fn.fileName = function(i,opts)
 			ext = '.jpg';
 		}
 		if(opts.outFile){
-			if(opts.outFile.indexOf('/') > -1) {
+			if(opts.outFile.indexOf(ph.sep) > -1) {
 				return opts.outFile;
 			}
 			xname = opts.outFile.indexOf('.') > -1 ? opts.outFile : (opts.outFile + ext);
@@ -73,8 +74,8 @@ Webimg.fn.fileName = function(i,opts)
 			xname += "_t" + i + ext;
 		}
 
-
-	return paths.join('/') + "/" + xname;
+		console.log(this.dst);
+	return paths.join(ph.sep) + ph.sep + xname;
 }
 
 //指定一个输出文件的名字
